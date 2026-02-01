@@ -80,18 +80,28 @@ li {
 dl {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: 0.3em;
 }
 
 dt {
-  width: 70%;
+  flex: 1;
   font-weight: bold;
 }
 
 dd {
-  width: 30%;
+  margin-left: 0.5em;
   text-align: right;
-  margin-left: 0;
+}
+
+dd::before {
+  content: " ~ ";
+  opacity: 0.5;
+}
+
+dd:first-of-type::before {
+  content: "";
 }
 
 /* Second line in job entries (title/location) */
