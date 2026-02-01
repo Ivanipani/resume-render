@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume</title>
+  <style>
+
+/* Reset and base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: white;
+}
+
+/* Resume container */
+.resume {
+  background: white;
+}
+
+/* Header styles */
+.resume-header {
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.resume-header h1 {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.resume-header-item {
+  display: inline;
+}
+
+.resume-header-item:not(.no-separator)::after {
+  content: " | ";
+}
+
+.resume-header-item a {
+  text-decoration: none;
+}
+
+/* Section headings */
+h2 {
+  font-size: 1.1em;
+  font-weight: bold;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  padding-bottom: 2px;
+  margin-bottom: 0.5em;
+}
+
+h3 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+
+/* Paragraphs and lists */
+p {
+  margin-bottom: 0.5em;
+}
+
+ul, ol {
+  margin-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+li {
+  margin-bottom: 0.2em;
+}
+
+/* Definition lists - used for job entries with dates */
+dl {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.3em;
+}
+
+dt {
+  flex: 1;
+  font-weight: bold;
+}
+
+dd {
+  margin-left: 0.5em;
+  text-align: right;
+}
+
+dd::before {
+  content: " ~ ";
+  opacity: 0.5;
+}
+
+dd:first-of-type::before {
+  content: "";
+}
+
+/* Second line in job entries (title/location) */
+dl + dl dt {
+  font-weight: normal;
+  font-style: italic;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+}
+
+/* Strong and emphasis */
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Page break elements */
+.md-it-newpage {
+  break-before: page;
+  page-break-before: always;
+}
+
+.md-it-linebreak {
+  display: block;
+}
+
+/* Iconify icons (used in contact info) */
+svg.iconify {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1em;
+}
+
+/* Print styles */
+@media print {
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Dynamic styles based on user settings */
+body, .resume {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* Theme color */
+h1, h2, h3 {
+  color: #2563eb;
+}
+
+h2 {
+  border-bottom-color: #2563eb;
+}
+
+a {
+  color: #2563eb;
+}
+
+.resume-header-item > a {
+  color: inherit;
+}
+
+/* Paragraph spacing */
+h2 {
+  margin-top: 5px;
+}
+
+/* Line heights for different elements */
+p, li {
+  line-height: 1.35;
+}
+
+h2, h3 {
+  line-height: 1.56;
+}
+
+dl {
+  line-height: 1.40;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+  </style>
+  <!-- Iconify for icons in contact info -->
+  <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
+</head>
+<body>
+  <div class="resume" style="
+    padding: 45px 40px;
+   width: 210mm; min-height: 297mm;">
+<div class="resume-header"><h1>John Doe</h1>
+<br>
+<span class="resume-header-item "><span class="iconify" data-icon="tabler:phone"></span> (555) 123-4567</span>
+<span class="resume-header-item "><a href="mailto:john.doe@email.com" target="_blank" rel="noopener noreferrer"><span class="iconify" data-icon="tabler:mail"></span> john.doe@email.com</a></span>
+<span class="resume-header-item "><a href="https://github.com/johndoe" target="_blank" rel="noopener noreferrer"><span class="iconify" data-icon="tabler:brand-github"></span> johndoe</a></span>
+<span class="resume-header-item no-separator"><a href="https://linkedin.com/in/johndoe" target="_blank" rel="noopener noreferrer"><span class="iconify" data-icon="tabler:brand-linkedin"></span> johndoe</a></span></div><h2>Summary</h2>
+<p>Experienced software engineer with 8+ years of expertise in full-stack development, distributed systems, and cloud architecture. Passionate about building scalable solutions and mentoring engineering teams.</p>
+<h2>Experience</h2>
+<dl>
+<dt><strong>Senior Software Engineer</strong></dt>
+<dd>Acme Corp</dd>
+<dd>San Francisco, CA</dd>
+<dd>2020 - Present</dd>
+</dl>
+<ul>
+<li>Led the migration of monolithic architecture to microservices, reducing deployment time by 70%</li>
+<li>Designed and implemented real-time data processing pipeline handling 1M+ events/day</li>
+<li>Mentored team of 5 junior engineers through code reviews and pair programming sessions</li>
+<li>Established engineering best practices including CI/CD pipelines, testing standards, and documentation</li>
+</ul>
+<dl>
+<dt><strong>Software Engineer</strong></dt>
+<dd>Tech Startup Inc</dd>
+<dd>New York, NY</dd>
+<dd>2017 - 2020</dd>
+</dl>
+<ul>
+<li>Built customer-facing web application using React and Node.js serving 50K+ daily active users</li>
+<li>Implemented RESTful APIs and GraphQL endpoints for mobile and web clients</li>
+<li>Reduced page load time by 40% through performance optimization and caching strategies</li>
+<li>Collaborated with product team to define technical requirements and deliver features on schedule</li>
+</ul>
+<dl>
+<dt><strong>Junior Developer</strong></dt>
+<dd>Digital Agency</dd>
+<dd>Boston, MA</dd>
+<dd>2015 - 2017</dd>
+</dl>
+<ul>
+<li>Developed responsive websites and web applications for various clients</li>
+<li>Maintained and enhanced existing codebases using modern JavaScript frameworks</li>
+<li>Participated in agile development processes including sprint planning and retrospectives</li>
+</ul>
+<h2>Education</h2>
+<dl>
+<dt><strong>Master of Science in Computer Science</strong></dt>
+<dd>Stanford University</dd>
+<dd>2013 - 2015</dd>
+</dl>
+<dl>
+<dt><strong>Bachelor of Science in Computer Engineering</strong></dt>
+<dd>MIT</dd>
+<dd>2009 - 2013</dd>
+</dl>
+<h2>Skills</h2>
+<p><strong>Languages:</strong> JavaScript, TypeScript, Python, Go, SQL, GraphQL</p>
+<p><strong>Frameworks:</strong> React, Node.js, Express, Next.js, Django, FastAPI</p>
+<p><strong>Infrastructure:</strong> AWS, GCP, Docker, Kubernetes, Terraform, GitHub Actions</p>
+<p><strong>Databases:</strong> PostgreSQL, MongoDB, Redis, Elasticsearch</p>
+<h2>Projects</h2>
+<p><strong>Open Source Contributions</strong></p>
+<ul>
+<li>Contributed to major open source projects including React and Node.js</li>
+<li>Maintained personal libraries with 500+ GitHub stars combined</li>
+<li>Regular speaker at local tech meetups and conferences</li>
+</ul>
+
+  </div>
+</body>
+</html>

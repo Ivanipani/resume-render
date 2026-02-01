@@ -1,0 +1,27 @@
+{
+  "name": "cv-to-pdf",
+  "version": "1.0.0",
+  "description": "CLI tool to convert Markdown resumes to PDF",
+  "type": "module",
+  "bin": {
+    "cv-to-pdf": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0",
+    "markdown-it-deflist": "^3.0.0",
+    "puppeteer": "^23.11.1"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
