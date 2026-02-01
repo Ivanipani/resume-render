@@ -43,7 +43,9 @@ function lineBreakPlugin(md: MarkdownIt): void {
     const line = state.src.slice(pos, max).trim();
 
     // Match \\[10px] or \\[1em] etc.
-    const match = line.match(/^\\\\\\[([^\]]+)\\]$/);
+    // Using RegExp constructor to avoid escaping issues
+    const lineBreakRegex = new RegExp('^\\\\\\\\\\[(.+)\\]$');
+    const match = line.match(lineBreakRegex);
     if (!match) {
       return false;
     }
