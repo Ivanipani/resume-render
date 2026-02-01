@@ -1,14 +1,11 @@
-import puppeteer from 'puppeteer';
-import type { ResumeStyles, PaperSize } from './types.js';
+import { spawn } from 'child_process';
+import { writeFile, unlink } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import type { ResumeStyles } from './types.js';
 import { PAPER_SIZES } from './types.js';
 import { generateCSS, generateContainerStyles } from './styles.js';
-
-/**
- * Convert millimeters to pixels (96 DPI)
- */
-function mmToPx(mm: number): number {
-  return Math.round(mm * 3.7795275591);
-}
+import { replaceIconifySpans } from './icons.js';
 
 /**
  * Generate complete HTML document for PDF rendering
@@ -18,6 +15,9 @@ function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
   const containerStyles = generateContainerStyles(styles);
   const paperDimensions = PAPER_SIZES[styles.paper];
 
+  // Replace Iconify spans with inline SVGs
+  const htmlWithIcons = replaceIconifySpans(resumeHtml);
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,13 +26,25 @@ function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
   <title>Resume</title>
   <style>
 ${css}
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: ${paperDimensions.width}mm;
+    }
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .icon svg {
+      width: 1em;
+      height: 1em;
+    }
   </style>
-  <!-- Iconify for icons in contact info -->
-  <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
 </head>
 <body>
-  <div class="resume" style="${containerStyles} width: ${paperDimensions.width}mm; min-height: ${paperDimensions.height}mm;">
-${resumeHtml}
+  <div class="resume" style="${containerStyles} width: 100%; min-height: ${paperDimensions.height}mm;">
+${htmlWithIcons}
   </div>
 </body>
 </html>`;
@@ -51,7 +63,7 @@ export interface PDFOptions {
 }
 
 /**
- * Generate PDF from resume HTML
+ * Generate PDF from resume HTML using wkhtmltopdf
  */
 export async function generatePDF(
   resumeHtml: string,
@@ -59,56 +71,70 @@ export async function generatePDF(
   options: PDFOptions
 ): Promise<void> {
   const html = generateHTML(resumeHtml, styles);
-  const paperDimensions = PAPER_SIZES[styles.paper];
 
-  // Launch browser
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  // Write HTML to temp file
+  const tempHtmlPath = join(tmpdir(), `resume-${Date.now()}.html`);
+  await writeFile(tempHtmlPath, html, 'utf-8');
 
   try {
-    const page = await browser.newPage();
-
-    // Set viewport to paper dimensions
-    await page.setViewport({
-      width: mmToPx(paperDimensions.width),
-      height: mmToPx(paperDimensions.height),
-      deviceScaleFactor: 2 // Higher quality
-    });
-
-    // Set content and wait for everything to load
-    await page.setContent(html, {
-      waitUntil: ['load', 'networkidle0']
-    });
-
-    // Wait for Iconify icons to render
-    await page.waitForFunction(() => {
-      const icons = document.querySelectorAll('.iconify');
-      return Array.from(icons).every(icon => icon.querySelector('svg'));
-    }, { timeout: 5000 }).catch(() => {
-      // Icons may not be present, continue anyway
-    });
-
-    // Generate PDF
-    await page.pdf({
-      path: options.outputPath,
-      format: styles.paper.toUpperCase() as 'A4' | 'Letter',
-      printBackground: options.printBackground ?? true,
-      displayHeaderFooter: options.displayHeaderFooter ?? false,
-      margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0
-      },
-      preferCSSPageSize: true
-    });
-
+    await runWkhtmltopdf(tempHtmlPath, options.outputPath, styles);
     console.log(`PDF generated: ${options.outputPath}`);
   } finally {
-    await browser.close();
+    // Clean up temp file
+    await unlink(tempHtmlPath).catch(() => {});
   }
+}
+
+/**
+ * Run wkhtmltopdf command
+ */
+function runWkhtmltopdf(
+  inputPath: string,
+  outputPath: string,
+  styles: ResumeStyles
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '--page-size', styles.paper.toUpperCase(),
+      '--margin-top', '0',
+      '--margin-right', '0',
+      '--margin-bottom', '0',
+      '--margin-left', '0',
+      '--print-media-type',
+      '--enable-local-file-access',
+      '--encoding', 'UTF-8',
+      inputPath,
+      outputPath,
+    ];
+
+    const proc = spawn('wkhtmltopdf', args);
+
+    let stderr = '';
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`wkhtmltopdf exited with code ${code}: ${stderr}`));
+      }
+    });
+
+    proc.on('error', (err) => {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        reject(new Error(
+          'wkhtmltopdf not found. Please install it:\n' +
+          '  macOS: brew install wkhtmltopdf\n' +
+          '  Ubuntu: apt install wkhtmltopdf\n' +
+          '  Windows: https://wkhtmltopdf.org/downloads.html'
+        ));
+      } else {
+        reject(err);
+      }
+    });
+  });
 }
 
 /**
