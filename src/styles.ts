@@ -76,7 +76,7 @@ li {
 }
 
 /* Definition lists - used for job entries with dates */
-/* Table-based layout works in both modern browsers and wkhtmltopdf */
+/* Table-based layout works in both modern browsers and print rendering */
 dl {
   display: table;
   width: 100%;

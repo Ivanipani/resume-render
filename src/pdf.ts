@@ -9,16 +9,22 @@ import { generateCSS, generateContainerStyles } from './styles.js';
 function mmToPx(mm: number): number {
   return Math.round(mm * 3.7795275591);
 }
+import { replaceIconSpans } from './icons.js';
 
 /**
  * Generate complete HTML document for PDF rendering
  */
 function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
-  const css = generateCSS(styles);
-  const containerStyles = generateContainerStyles(styles);
-  const paperDimensions = PAPER_SIZES[styles.paper];
+    const css = generateCSS(styles);
+    const containerStyles = generateContainerStyles(styles);
 
-  return `<!DOCTYPE html>
+  // Replace Iconify spans with inline SVGs
+  const htmlWithIcons = replaceIconifySpans(resumeHtml);
+
+    // Replace Iconify spans with inline SVGs
+    const htmlWithIcons = replaceIconSpans(resumeHtml);
+
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -44,8 +50,10 @@ ${css}
   <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
 </head>
 <body>
-  <div class="resume" style="${containerStyles} width: ${paperDimensions.width}mm; min-height: ${paperDimensions.height}mm;">
 ${resumeHtml}
+  <div class="resume" style="${containerStyles} width: 100%; min-height: ${paperDimensions.height}mm;">
+${htmlWithIcons}
+  <div class="resume" style="${containerStyles} width: 100%;">
   </div>
 </body>
 </html>`;
@@ -55,21 +63,21 @@ ${resumeHtml}
  * Options for PDF generation
  */
 export interface PDFOptions {
-  /** Output file path */
-  outputPath: string;
-  /** Whether to display header and footer */
-  displayHeaderFooter?: boolean;
-  /** Print background graphics */
-  printBackground?: boolean;
+    /** Output file path */
+    outputPath: string;
+    /** Whether to display header and footer */
+    displayHeaderFooter?: boolean;
+    /** Print background graphics */
+    printBackground?: boolean;
 }
 
 /**
  * Generate PDF from resume HTML using Puppeteer
  */
 export async function generatePDF(
-  resumeHtml: string,
-  styles: ResumeStyles,
-  options: PDFOptions
+    resumeHtml: string,
+    styles: ResumeStyles,
+    options: PDFOptions
 ): Promise<void> {
   const html = generateHTML(resumeHtml, styles);
   const paperDimensions = PAPER_SIZES[styles.paper];
@@ -118,15 +126,32 @@ export async function generatePDF(
       preferCSSPageSize: true
     });
 
-    console.log(`PDF generated: ${options.outputPath}`);
-  } finally {
-    await browser.close();
-  }
+    try {
+        const page = await browser.newPage();
+
+        // Set content and wait for rendering to complete
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+
+        // Emulate print media for @media print rules
+        await page.emulateMediaType('print');
+
+        // Generate PDF
+        await page.pdf({
+            path: options.outputPath,
+            format: styles.paper === 'A4' ? 'A4' : 'Letter',
+            printBackground: options.printBackground ?? true,
+            scale: 0.90,
+        });
+
+        console.log(`PDF generated: ${options.outputPath}`);
+    } finally {
+        await browser.close();
+    }
 }
 
 /**
  * Generate HTML file for debugging
  */
 export function generateHTMLFile(resumeHtml: string, styles: ResumeStyles): string {
-  return generateHTML(resumeHtml, styles);
+    return generateHTML(resumeHtml, styles);
 }

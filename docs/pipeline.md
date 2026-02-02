@@ -9,7 +9,7 @@ This document explains how cv-to-pdf converts a Markdown resume into a PDF.
 │   Markdown      │────▶│   HTML          │────▶│   Styled HTML   │────▶│   PDF           │
 │   + YAML        │     │   Content       │     │   Document      │     │   Output        │
 └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
-      cli.ts              markdown.ts            pdf.ts + styles.ts       wkhtmltopdf
+      cli.ts              markdown.ts            pdf.ts + styles.ts       puppeteer
 ```
 
 ## Pipeline Stages
@@ -153,17 +153,18 @@ Combines all pieces into a complete HTML document.
 
 ### Stage 6: PDF Generation (`src/pdf.ts`)
 
-Uses [wkhtmltopdf](https://wkhtmltopdf.org/) to render HTML to PDF.
+Uses [Puppeteer](https://pptr.dev/) to render HTML to PDF via headless Chromium.
 
 **Process:**
-1. Write complete HTML to a temporary file
-2. Spawn `wkhtmltopdf` with arguments:
-   - `--page-size A4` (or letter)
-   - `--margin-* 0` (zero margins, handled in CSS)
-   - `--print-media-type` (use print stylesheet)
-   - `--enable-local-file-access` (allow local resources)
-   - `--encoding UTF-8`
-3. Clean up temporary file
+1. Launch headless Chromium browser
+2. Create new page and set HTML content directly
+3. Emulate print media type for CSS `@media print` rules
+4. Generate PDF with options:
+   - `format: 'A4'` or `'Letter'`
+   - `printBackground: true`
+   - `preferCSSPageSize: true` (respect `@page` CSS rules)
+   - Zero margins (handled in CSS/container)
+5. Close browser
 
 **Output:** PDF file at specified path
 
@@ -204,7 +205,7 @@ src/
 ├── markdown.ts     # Markdown → HTML conversion
 ├── icons.ts        # Iconify → inline SVG replacement
 ├── styles.ts       # CSS generation
-├── pdf.ts          # HTML assembly + wkhtmltopdf
+├── pdf.ts          # HTML assembly + puppeteer PDF generation
 └── types.ts        # TypeScript interfaces + defaults
 ```
 
@@ -213,7 +214,4 @@ src/
 ## Prerequisites
 
 - **Node.js** 18+
-- **wkhtmltopdf** installed on system:
-  - macOS: `brew install wkhtmltopdf`
-  - Ubuntu: `apt install wkhtmltopdf`
-  - Windows: Download from https://wkhtmltopdf.org/downloads.html
+- **Puppeteer** (automatically downloads Chromium during `npm install`)
