@@ -21,6 +21,7 @@ The CLI parses command-line arguments and orchestrates the pipeline.
 **Input:** Path to a Markdown file + optional CLI flags
 
 **Process:**
+
 1. Read the input Markdown file
 2. Parse CLI options (paper size, font size, theme color, margins, etc.)
 3. Call `markdownService.renderResume()` to get HTML + front matter
@@ -28,6 +29,7 @@ The CLI parses command-line arguments and orchestrates the pipeline.
 5. Call `generatePDF()` to produce the final PDF
 
 **Key options:**
+
 - `-o, --output <path>` - Output PDF path
 - `--html <path>` - Also output HTML for debugging
 
@@ -48,7 +50,7 @@ The `MarkdownService` class converts Markdown to HTML using [markdown-it](https:
    - Name becomes `<h1>`
    - Header items become `<span class="resume-header-item">` elements
    - Links are wrapped in `<a>` tags
-   - Items are separated by ` | ` via CSS
+   - Items are separated by `|` via CSS
 
 3. **Render body** with markdown-it plugins:
    - `markdown-it-deflist` - Definition lists for job entries (title ~ company ~ date)
@@ -85,11 +87,13 @@ Iconify spans are replaced with inline SVGs before PDF generation.
 **Input:** HTML string containing `<span class="iconify" data-icon="tabler:phone"></span>`
 
 **Process:**
+
 - Regex matches Iconify span elements
 - Looks up icon name in the `ICONS` map
 - Replaces with `<span class="icon"><svg>...</svg></span>`
 
 **Supported icons:**
+
 - `tabler:phone` - Phone icon
 - `tabler:mail` - Email envelope
 - `tabler:brand-github` - GitHub logo
@@ -130,22 +134,23 @@ Generates the complete stylesheet for the resume.
 Combines all pieces into a complete HTML document.
 
 **Structure:**
+
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    /* BASE_CSS */
-    /* Dynamic CSS */
-    /* Print CSS */
-    /* Icon styles */
-  </style>
-</head>
-<body>
-  <div class="resume" style="padding: {marginV}px {marginH}px; width: 100%;">
-    <!-- Resume content -->
-  </div>
-</body>
+  <head>
+    <style>
+      /* BASE_CSS */
+      /* Dynamic CSS */
+      /* Print CSS */
+      /* Icon styles */
+    </style>
+  </head>
+  <body>
+    <div class="resume" style="padding: {marginV}px {marginH}px; width: 100%;">
+      <!-- Resume content -->
+    </div>
+  </body>
 </html>
 ```
 
@@ -156,6 +161,7 @@ Combines all pieces into a complete HTML document.
 Uses [Puppeteer](https://pptr.dev/) to render HTML to PDF via headless Chromium.
 
 **Process:**
+
 1. Launch headless Chromium browser
 2. Create new page and set HTML content directly
 3. Emulate print media type for CSS `@media print` rules
@@ -173,24 +179,26 @@ Uses [Puppeteer](https://pptr.dev/) to render HTML to PDF via headless Chromium.
 ## Type Definitions (`src/types.ts`)
 
 ### ResumeStyles
+
 ```typescript
 interface ResumeStyles {
-  paper: 'A4' | 'letter';
-  fontSize: number;        // Base font size in pixels
-  themeColor: string;      // Hex color for headings/links
-  marginV: number;         // Vertical margin in pixels
-  marginH: number;         // Horizontal margin in pixels
-  lineHeight: number;      // Line height multiplier
-  paragraphSpace: number;  // Space between sections
-  fontFamily: string;      // CSS font-family value
+  paper: "A4" | "letter";
+  fontSize: number; // Base font size in pixels
+  themeColor: string; // Hex color for headings/links
+  marginV: number; // Vertical margin in pixels
+  marginH: number; // Horizontal margin in pixels
+  lineHeight: number; // Line height multiplier
+  paragraphSpace: number; // Space between sections
+  fontFamily: string; // CSS font-family value
 }
 ```
 
 ### HeaderItem
+
 ```typescript
 interface HeaderItem {
-  text: string;      // Display text (can include HTML)
-  link?: string;     // Optional URL
+  text: string; // Display text (can include HTML)
+  link?: string; // Optional URL
   newLine?: boolean; // Start on new line
 }
 ```

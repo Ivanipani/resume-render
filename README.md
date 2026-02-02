@@ -33,7 +33,7 @@ header:
   - text: GitHub
     link: https://github.com/johndoe
 styles:
-  paper: A4           # or "letter"
+  paper: A4 # or "letter"
   fontSize: 14
   themeColor: "#2563eb"
   marginV: 45
@@ -48,9 +48,9 @@ Use the `~` syntax for two-column layouts:
 
 ```markdown
 **Software Engineer**
-  ~ Acme Corp
-  ~ San Francisco, CA
-  ~ 2020 - Present
+~ Acme Corp
+~ San Francisco, CA
+~ 2020 - Present
 ```
 
 ### Special Commands

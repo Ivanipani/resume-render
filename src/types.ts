@@ -1,7 +1,7 @@
 /**
  * Paper size options
  */
-export type PaperSize = 'A4' | 'letter';
+export type PaperSize = "A4" | "letter";
 
 /**
  * Paper dimensions in millimeters
@@ -48,21 +48,21 @@ export interface FrontMatter {
  */
 export const PAPER_SIZES: Record<PaperSize, PaperDimensions> = {
   A4: { width: 210, height: 297 },
-  letter: { width: 215.9, height: 279.4 }
+  letter: { width: 215.9, height: 279.4 },
 };
 
 /**
  * Default resume styles
  */
 export const DEFAULT_STYLES: ResumeStyles = {
-  paper: 'A4',
+  paper: "A4",
   fontSize: 15,
-  themeColor: '#377bb5',
+  themeColor: "#377bb5",
   marginV: 50,
   marginH: 45,
   lineHeight: 1.3,
   paragraphSpace: 5,
-  fontFamily: 'Georgia, "Times New Roman", serif'
+  fontFamily: 'Georgia, "Times New Roman", serif',
 };
 
 /**

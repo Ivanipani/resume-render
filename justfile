@@ -121,9 +121,9 @@ dev input="": ensure-dirs
     echo "Watching $file for changes..."
     watchexec -w "${file}" -w ./src npx tsx src/cli.ts "$file" -o "$output_pdf" --html "$output_html"
 
-# List all markdown files in resumes directory
-list:
-    @find {{markdown_dir}} -name "*.md" 2>/dev/null | sort || echo "No markdown files found in {{markdown_dir}}"
+# Format all files
+format:
+    npm run format
 
 # Show output directory contents
 outputs:

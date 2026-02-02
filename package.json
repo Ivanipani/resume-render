@@ -9,18 +9,20 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "format": "prettier . --write"
   },
   "dependencies": {
     "commander": "^12.1.0",
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
-    "markdown-it-deflist": "^3.0.0"
+    "markdown-it-deflist": "^3.0.0",
     "puppeteer": "^24.36.1"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.13.1",
+    "prettier": "3.8.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

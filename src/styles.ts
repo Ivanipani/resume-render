@@ -1,4 +1,4 @@
-import type { ResumeStyles, PaperSize } from './types.js';
+import type { ResumeStyles, PaperSize } from "./types.js";
 
 /**
  * Base CSS styles for the resume
@@ -156,7 +156,8 @@ svg.iconify {
  * Generate dynamic CSS based on user styles
  */
 function generateDynamicCSS(styles: ResumeStyles): string {
-  const { themeColor, fontSize, lineHeight, paragraphSpace, fontFamily } = styles;
+  const { themeColor, fontSize, lineHeight, paragraphSpace, fontFamily } =
+    styles;
 
   return `
 /* Dynamic styles based on user settings */

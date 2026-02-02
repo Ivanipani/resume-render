@@ -1,7 +1,9 @@
-import puppeteer from 'puppeteer';
-import type { ResumeStyles, PaperSize } from './types.js';
-import { PAPER_SIZES } from './types.js';
-import { generateCSS, generateContainerStyles } from './styles.js';
+import puppeteer from "puppeteer";
+import type { ResumeStyles, PaperSize } from "./types.js";
+import { PAPER_SIZES } from "./types.js";
+import { generateCSS, generateContainerStyles } from "./styles.js";
+
+import { replaceIconSpans } from "./icons.js";
 
 /**
  * Convert millimeters to pixels (96 DPI)
@@ -9,22 +11,18 @@ import { generateCSS, generateContainerStyles } from './styles.js';
 function mmToPx(mm: number): number {
   return Math.round(mm * 3.7795275591);
 }
-import { replaceIconSpans } from './icons.js';
 
 /**
  * Generate complete HTML document for PDF rendering
  */
 function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
-    const css = generateCSS(styles);
-    const containerStyles = generateContainerStyles(styles);
+  const css = generateCSS(styles);
+  const containerStyles = generateContainerStyles(styles);
 
   // Replace Iconify spans with inline SVGs
-  const htmlWithIcons = replaceIconifySpans(resumeHtml);
+  const htmlWithIcons = replaceIconSpans(resumeHtml);
 
-    // Replace Iconify spans with inline SVGs
-    const htmlWithIcons = replaceIconSpans(resumeHtml);
-
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -42,18 +40,16 @@ ${css}
       vertical-align: middle;
     }
     .icon svg {
-      width: 1em;
-      height: 1em;
+      width: 1.5em;
+      height: 1.5em;
     }
   </style>
   <!-- Iconify for icons in contact info -->
   <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
 </head>
 <body>
-${resumeHtml}
-  <div class="resume" style="${containerStyles} width: 100%; min-height: ${paperDimensions.height}mm;">
-${htmlWithIcons}
   <div class="resume" style="${containerStyles} width: 100%;">
+${htmlWithIcons}
   </div>
 </body>
 </html>`;
@@ -63,21 +59,21 @@ ${htmlWithIcons}
  * Options for PDF generation
  */
 export interface PDFOptions {
-    /** Output file path */
-    outputPath: string;
-    /** Whether to display header and footer */
-    displayHeaderFooter?: boolean;
-    /** Print background graphics */
-    printBackground?: boolean;
+  /** Output file path */
+  outputPath: string;
+  /** Whether to display header and footer */
+  displayHeaderFooter?: boolean;
+  /** Print background graphics */
+  printBackground?: boolean;
 }
 
 /**
  * Generate PDF from resume HTML using Puppeteer
  */
 export async function generatePDF(
-    resumeHtml: string,
-    styles: ResumeStyles,
-    options: PDFOptions
+  resumeHtml: string,
+  styles: ResumeStyles,
+  options: PDFOptions,
 ): Promise<void> {
   const html = generateHTML(resumeHtml, styles);
   const paperDimensions = PAPER_SIZES[styles.paper];
@@ -85,7 +81,7 @@ export async function generatePDF(
   // Launch browser
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
@@ -95,63 +91,47 @@ export async function generatePDF(
     await page.setViewport({
       width: mmToPx(paperDimensions.width),
       height: mmToPx(paperDimensions.height),
-      deviceScaleFactor: 2 // Higher quality
+      deviceScaleFactor: 2, // Higher quality
     });
 
     // Set content and wait for everything to load
     await page.setContent(html, {
-      waitUntil: ['load', 'networkidle0']
+      waitUntil: ["load", "networkidle0"],
     });
 
     // Wait for Iconify icons to render
-    await page.waitForFunction(() => {
-      const icons = document.querySelectorAll('.iconify');
-      return Array.from(icons).every(icon => icon.querySelector('svg'));
-    }, { timeout: 5000 }).catch(() => {
-      // Icons may not be present, continue anyway
-    });
+    await page
+      .waitForFunction(
+        () => {
+          const icons = document.querySelectorAll(".iconify");
+          return Array.from(icons).every((icon) => icon.querySelector("svg"));
+        },
+        { timeout: 5000 },
+      )
+      .catch(() => {
+        // Icons may not be present, continue anyway
+      });
 
     // Generate PDF
     await page.pdf({
       path: options.outputPath,
-      format: styles.paper.toUpperCase() as 'A4' | 'Letter',
+      format: styles.paper.toUpperCase() as "A4" | "Letter",
       printBackground: options.printBackground ?? true,
-      displayHeaderFooter: options.displayHeaderFooter ?? false,
-      margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0
-      },
-      preferCSSPageSize: true
+      scale: 0.85,
     });
 
-    try {
-        const page = await browser.newPage();
-
-        // Set content and wait for rendering to complete
-        await page.setContent(html, { waitUntil: 'networkidle0' });
-
-        // Emulate print media for @media print rules
-        await page.emulateMediaType('print');
-
-        // Generate PDF
-        await page.pdf({
-            path: options.outputPath,
-            format: styles.paper === 'A4' ? 'A4' : 'Letter',
-            printBackground: options.printBackground ?? true,
-            scale: 0.90,
-        });
-
-        console.log(`PDF generated: ${options.outputPath}`);
-    } finally {
-        await browser.close();
-    }
+    console.log(`PDF generated: ${options.outputPath}`);
+  } finally {
+    await browser.close();
+  }
 }
 
 /**
  * Generate HTML file for debugging
  */
-export function generateHTMLFile(resumeHtml: string, styles: ResumeStyles): string {
-    return generateHTML(resumeHtml, styles);
+export function generateHTMLFile(
+  resumeHtml: string,
+  styles: ResumeStyles,
+): string {
+  return generateHTML(resumeHtml, styles);
 }
