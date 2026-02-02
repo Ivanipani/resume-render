@@ -20,6 +20,8 @@ dist/
 .env.local
 
 # Resumes, generated output
-./resumes/
+resumes/**/*.md
+resumes/**/*.html
+resumes/**/*.pdf
 
 .claude/
