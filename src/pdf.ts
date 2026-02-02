@@ -1,7 +1,4 @@
-import { spawn } from 'child_process';
-import { writeFile, unlink } from 'fs/promises';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import puppeteer from 'puppeteer';
 import type { ResumeStyles } from './types.js';
 import { PAPER_SIZES } from './types.js';
 import { generateCSS, generateContainerStyles } from './styles.js';
@@ -62,7 +59,7 @@ export interface PDFOptions {
 }
 
 /**
- * Generate PDF from resume HTML using wkhtmltopdf
+ * Generate PDF from resume HTML using Puppeteer
  */
 export async function generatePDF(
   resumeHtml: string,
@@ -71,69 +68,33 @@ export async function generatePDF(
 ): Promise<void> {
   const html = generateHTML(resumeHtml, styles);
 
-  // Write HTML to temp file
-  const tempHtmlPath = join(tmpdir(), `resume-${Date.now()}.html`);
-  await writeFile(tempHtmlPath, html, 'utf-8');
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
   try {
-    await runWkhtmltopdf(tempHtmlPath, options.outputPath, styles);
+    const page = await browser.newPage();
+
+    // Set content and wait for rendering to complete
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    // Emulate print media for @media print rules
+    await page.emulateMediaType('print');
+
+    // Generate PDF
+    await page.pdf({
+      path: options.outputPath,
+      format: styles.paper === 'A4' ? 'A4' : 'Letter',
+      printBackground: options.printBackground ?? true,
+      margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      preferCSSPageSize: true,
+    });
+
     console.log(`PDF generated: ${options.outputPath}`);
   } finally {
-    // Clean up temp file
-    await unlink(tempHtmlPath).catch(() => {});
+    await browser.close();
   }
-}
-
-/**
- * Run wkhtmltopdf command
- */
-function runWkhtmltopdf(
-  inputPath: string,
-  outputPath: string,
-  styles: ResumeStyles
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const args = [
-        // '--page-size', styles.paper.toUpperCase(),
-        // '--margin-top', '0',
-        // '--margin-right', '0',
-        // '--margin-bottom', '0',
-        // '--margin-left', '0',
-        // '--print-media-type',
-      '--enable-local-file-access',
-      '--encoding', 'UTF-8',
-      inputPath,
-      outputPath,
-    ];
-
-    const proc = spawn('wkhtmltopdf', args);
-
-    let stderr = '';
-    proc.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    proc.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`wkhtmltopdf exited with code ${code}: ${stderr}`));
-      }
-    });
-
-    proc.on('error', (err) => {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        reject(new Error(
-          'wkhtmltopdf not found. Please install it:\n' +
-          '  macOS: brew install wkhtmltopdf\n' +
-          '  Ubuntu: apt install wkhtmltopdf\n' +
-          '  Windows: https://wkhtmltopdf.org/downloads.html'
-        ));
-      } else {
-        reject(err);
-      }
-    });
-  });
 }
 
 /**
