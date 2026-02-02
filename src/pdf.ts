@@ -26,6 +26,19 @@ function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
   <title>Resume</title>
   <style>
 ${css}
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .icon svg {
+      width: 1em;
+      height: 1em;
+    }
   </style>
   <!-- Iconify for icons in contact info -->
   <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
@@ -109,6 +122,58 @@ export async function generatePDF(
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * Run wkhtmltopdf command
+ */
+function runWkhtmltopdf(
+  inputPath: string,
+  outputPath: string,
+  styles: ResumeStyles
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '--page-size', styles.paper.toUpperCase(),
+      '--margin-top', '0',
+      '--margin-right', '0',
+      '--margin-bottom', '0',
+      '--margin-left', '0',
+      '--print-media-type',
+      '--enable-local-file-access',
+      '--encoding', 'UTF-8',
+      inputPath,
+      outputPath,
+    ];
+
+    const proc = spawn('wkhtmltopdf', args);
+
+    let stderr = '';
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`wkhtmltopdf exited with code ${code}: ${stderr}`));
+      }
+    });
+
+    proc.on('error', (err) => {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        reject(new Error(
+          'wkhtmltopdf not found. Please install it:\n' +
+          '  macOS: brew install wkhtmltopdf\n' +
+          '  Ubuntu: apt install wkhtmltopdf\n' +
+          '  Windows: https://wkhtmltopdf.org/downloads.html'
+        ));
+      } else {
+        reject(err);
+      }
+    });
+  });
 }
 
 /**
