@@ -1,33 +1,37 @@
-import MarkdownIt from 'markdown-it';
-import deflist from 'markdown-it-deflist';
-import matter from 'gray-matter';
-import type { FrontMatter, HeaderItem } from './types.js';
+import MarkdownIt from "markdown-it";
+import deflist from "markdown-it-deflist";
+import matter from "gray-matter";
+import type { FrontMatter, HeaderItem } from "./types.js";
 
 /**
  * Custom markdown-it plugin for \newpage command
  * Creates a page break element
  */
 function newPagePlugin(md: MarkdownIt): void {
-  md.block.ruler.before('paragraph', 'newpage', (state, startLine, _endLine, silent) => {
-    const pos = state.bMarks[startLine] + state.tShift[startLine];
-    const max = state.eMarks[startLine];
-    const line = state.src.slice(pos, max).trim();
+  md.block.ruler.before(
+    "paragraph",
+    "newpage",
+    (state, startLine, _endLine, silent) => {
+      const pos = state.bMarks[startLine] + state.tShift[startLine];
+      const max = state.eMarks[startLine];
+      const line = state.src.slice(pos, max).trim();
 
-    if (line !== '\\newpage') {
-      return false;
-    }
+      if (line !== "\\newpage") {
+        return false;
+      }
 
-    if (silent) {
+      if (silent) {
+        return true;
+      }
+
+      state.line = startLine + 1;
+      const token = state.push("newpage", "div", 0);
+      token.markup = "\\newpage";
+      token.map = [startLine, state.line];
+
       return true;
-    }
-
-    state.line = startLine + 1;
-    const token = state.push('newpage', 'div', 0);
-    token.markup = '\\newpage';
-    token.map = [startLine, state.line];
-
-    return true;
-  });
+    },
+  );
 
   md.renderer.rules.newpage = () => '<div class="md-it-newpage"></div>\n';
 }
@@ -37,34 +41,38 @@ function newPagePlugin(md: MarkdownIt): void {
  * Creates a vertical spacer with specified height
  */
 function lineBreakPlugin(md: MarkdownIt): void {
-  md.block.ruler.before('paragraph', 'linebreak', (state, startLine, _endLine, silent) => {
-    const pos = state.bMarks[startLine] + state.tShift[startLine];
-    const max = state.eMarks[startLine];
-    const line = state.src.slice(pos, max).trim();
+  md.block.ruler.before(
+    "paragraph",
+    "linebreak",
+    (state, startLine, _endLine, silent) => {
+      const pos = state.bMarks[startLine] + state.tShift[startLine];
+      const max = state.eMarks[startLine];
+      const line = state.src.slice(pos, max).trim();
 
-    // Match \\[10px] or \\[1em] etc.
-    // Using RegExp constructor to avoid escaping issues
-    const lineBreakRegex = new RegExp('^\\\\\\\\\\[(.+)\\]$');
-    const match = line.match(lineBreakRegex);
-    if (!match) {
-      return false;
-    }
+      // Match \\[10px] or \\[1em] etc.
+      // Using RegExp constructor to avoid escaping issues
+      const lineBreakRegex = new RegExp("^\\\\\\\\\\[(.+)\\]$");
+      const match = line.match(lineBreakRegex);
+      if (!match) {
+        return false;
+      }
 
-    if (silent) {
+      if (silent) {
+        return true;
+      }
+
+      state.line = startLine + 1;
+      const token = state.push("linebreak", "div", 0);
+      token.markup = line;
+      token.meta = { height: match[1] };
+      token.map = [startLine, state.line];
+
       return true;
-    }
-
-    state.line = startLine + 1;
-    const token = state.push('linebreak', 'div', 0);
-    token.markup = line;
-    token.meta = { height: match[1] };
-    token.map = [startLine, state.line];
-
-    return true;
-  });
+    },
+  );
 
   md.renderer.rules.linebreak = (tokens, idx) => {
-    const height = tokens[idx].meta?.height || '10px';
+    const height = tokens[idx].meta?.height || "10px";
     return `<div class="md-it-linebreak" style="height: ${height};"></div>\n`;
   };
 }
@@ -77,7 +85,7 @@ function renderHeaderItem(item: HeaderItem, hasSeparator: boolean): string {
     ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.text}</a>`
     : item.text;
 
-  const separatorClass = hasSeparator ? '' : 'no-separator';
+  const separatorClass = hasSeparator ? "" : "no-separator";
   const element = `<span class="resume-header-item ${separatorClass}">${content}</span>`;
 
   return item.newLine ? `<br>\n${element}` : element;
@@ -99,11 +107,11 @@ function renderHeader(frontMatter: FrontMatter): string {
         const hasSeparator = i !== arr.length - 1 && !arr[i + 1]?.newLine;
         return renderHeaderItem(item, hasSeparator);
       })
-      .join('\n');
+      .join("\n");
     parts.push(headerItems);
   }
 
-  return `<div class="resume-header">${parts.join('\n')}</div>`;
+  return `<div class="resume-header">${parts.join("\n")}</div>`;
 }
 
 /**
@@ -112,7 +120,7 @@ function renderHeader(frontMatter: FrontMatter): string {
  */
 function resolveDeflist(html: string): string {
   return html.replace(/<dl>([\s\S]*?)<\/dl>/g, (match) =>
-    match.replace(/<\/dd>\n<dt>/g, '</dd>\n</dl>\n<dl>\n<dt>')
+    match.replace(/<\/dd>\n<dt>/g, "</dd>\n</dl>\n<dl>\n<dt>"),
   );
 }
 
@@ -126,7 +134,7 @@ export class MarkdownService {
     this.md = new MarkdownIt({
       html: true,
       linkify: true,
-      typographer: true
+      typographer: true,
     });
 
     // Add plugins
@@ -142,7 +150,7 @@ export class MarkdownService {
     const { data, content: body } = matter(content);
     return {
       body,
-      frontMatter: data as FrontMatter
+      frontMatter: data as FrontMatter,
     };
   }
 
@@ -164,7 +172,7 @@ export class MarkdownService {
 
     return {
       html: header + bodyHtml,
-      frontMatter
+      frontMatter,
     };
   }
 }

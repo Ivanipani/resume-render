@@ -1,7 +1,9 @@
-import puppeteer from 'puppeteer';
-import type { ResumeStyles, PaperSize } from './types.js';
-import { PAPER_SIZES } from './types.js';
-import { generateCSS, generateContainerStyles } from './styles.js';
+import puppeteer from "puppeteer";
+import type { ResumeStyles, PaperSize } from "./types.js";
+import { PAPER_SIZES } from "./types.js";
+import { generateCSS, generateContainerStyles } from "./styles.js";
+
+import { replaceIconSpans } from "./icons.js";
 
 /**
  * Convert millimeters to pixels (96 DPI)
@@ -16,7 +18,9 @@ function mmToPx(mm: number): number {
 function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
   const css = generateCSS(styles);
   const containerStyles = generateContainerStyles(styles);
-  const paperDimensions = PAPER_SIZES[styles.paper];
+
+  // Replace Iconify spans with inline SVGs
+  const htmlWithIcons = replaceIconSpans(resumeHtml);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -26,13 +30,26 @@ function generateHTML(resumeHtml: string, styles: ResumeStyles): string {
   <title>Resume</title>
   <style>
 ${css}
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .icon svg {
+      width: 1.5em;
+      height: 1.5em;
+    }
   </style>
   <!-- Iconify for icons in contact info -->
   <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
 </head>
 <body>
-  <div class="resume" style="${containerStyles} width: ${paperDimensions.width}mm; min-height: ${paperDimensions.height}mm;">
-${resumeHtml}
+  <div class="resume" style="${containerStyles} width: 100%;">
+${htmlWithIcons}
   </div>
 </body>
 </html>`;
@@ -51,12 +68,12 @@ export interface PDFOptions {
 }
 
 /**
- * Generate PDF from resume HTML
+ * Generate PDF from resume HTML using Puppeteer
  */
 export async function generatePDF(
   resumeHtml: string,
   styles: ResumeStyles,
-  options: PDFOptions
+  options: PDFOptions,
 ): Promise<void> {
   const html = generateHTML(resumeHtml, styles);
   const paperDimensions = PAPER_SIZES[styles.paper];
@@ -64,7 +81,7 @@ export async function generatePDF(
   // Launch browser
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
@@ -74,35 +91,33 @@ export async function generatePDF(
     await page.setViewport({
       width: mmToPx(paperDimensions.width),
       height: mmToPx(paperDimensions.height),
-      deviceScaleFactor: 2 // Higher quality
+      deviceScaleFactor: 2, // Higher quality
     });
 
     // Set content and wait for everything to load
     await page.setContent(html, {
-      waitUntil: ['load', 'networkidle0']
+      waitUntil: ["load", "networkidle0"],
     });
 
     // Wait for Iconify icons to render
-    await page.waitForFunction(() => {
-      const icons = document.querySelectorAll('.iconify');
-      return Array.from(icons).every(icon => icon.querySelector('svg'));
-    }, { timeout: 5000 }).catch(() => {
-      // Icons may not be present, continue anyway
-    });
+    await page
+      .waitForFunction(
+        () => {
+          const icons = document.querySelectorAll(".iconify");
+          return Array.from(icons).every((icon) => icon.querySelector("svg"));
+        },
+        { timeout: 5000 },
+      )
+      .catch(() => {
+        // Icons may not be present, continue anyway
+      });
 
     // Generate PDF
     await page.pdf({
       path: options.outputPath,
-      format: styles.paper.toUpperCase() as 'A4' | 'Letter',
+      format: styles.paper.toUpperCase() as "A4" | "Letter",
       printBackground: options.printBackground ?? true,
-      displayHeaderFooter: options.displayHeaderFooter ?? false,
-      margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0
-      },
-      preferCSSPageSize: true
+      scale: 0.85,
     });
 
     console.log(`PDF generated: ${options.outputPath}`);
@@ -114,6 +129,9 @@ export async function generatePDF(
 /**
  * Generate HTML file for debugging
  */
-export function generateHTMLFile(resumeHtml: string, styles: ResumeStyles): string {
+export function generateHTMLFile(
+  resumeHtml: string,
+  styles: ResumeStyles,
+): string {
   return generateHTML(resumeHtml, styles);
 }

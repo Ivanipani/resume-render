@@ -110,7 +110,7 @@ dev input="": ensure-dirs
     #!/usr/bin/env bash
     input="{{input}}"
     if [[ -z "$input" ]]; then
-        file=$(find {{markdown_dir}} -name "*.md" 2>/dev/null | fzf --prompt="Select file to watch: " < /dev/tty)
+        file=$(find {{markdown_dir}} -name "*.md" | fzf --prompt="Select file to watch: ")
         [[ -z "$file" ]] && exit 0
     else
         file="$input"
@@ -119,14 +119,11 @@ dev input="": ensure-dirs
     output_pdf="{{output_dir}}/${basename%.md}.pdf"
     output_html="{{output_dir}}/${basename%.md}.html"
     echo "Watching $file for changes..."
-    while true; do
-        npx tsx src/cli.ts "$file" -o "$output_pdf" --html "$output_html"
-        sleep 2
-    done
+    watchexec -w "${file}" -w ./src npx tsx src/cli.ts "$file" -o "$output_pdf" --html "$output_html"
 
-# List all markdown files in resumes directory
-list:
-    @find {{markdown_dir}} -name "*.md" 2>/dev/null | sort || echo "No markdown files found in {{markdown_dir}}"
+# Format all files
+format:
+    npm run format
 
 # Show output directory contents
 outputs:

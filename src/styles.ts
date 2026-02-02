@@ -1,4 +1,4 @@
-import type { ResumeStyles, PaperSize } from './types.js';
+import type { ResumeStyles, PaperSize } from "./types.js";
 
 /**
  * Base CSS styles for the resume
@@ -76,22 +76,24 @@ li {
 }
 
 /* Definition lists - used for job entries with dates */
+/* Table-based layout works in both modern browsers and print rendering */
 dl {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
+  display: table;
+  width: 100%;
   margin-bottom: 0.3em;
 }
 
 dt {
-  flex: 1;
+  display: table-cell;
   font-weight: bold;
+  vertical-align: baseline;
 }
 
 dd {
-  margin-left: 0.5em;
+  display: table-cell;
   text-align: right;
+  vertical-align: baseline;
+  padding-left: 0.5em;
 }
 
 dd::before {
@@ -154,7 +156,8 @@ svg.iconify {
  * Generate dynamic CSS based on user styles
  */
 function generateDynamicCSS(styles: ResumeStyles): string {
-  const { themeColor, fontSize, lineHeight, paragraphSpace, fontFamily } = styles;
+  const { themeColor, fontSize, lineHeight, paragraphSpace, fontFamily } =
+    styles;
 
   return `
 /* Dynamic styles based on user settings */
