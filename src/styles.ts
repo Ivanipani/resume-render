@@ -76,22 +76,24 @@ li {
 }
 
 /* Definition lists - used for job entries with dates */
+/* Table-based layout works in both modern browsers and wkhtmltopdf */
 dl {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
+  display: table;
+  width: 100%;
   margin-bottom: 0.3em;
 }
 
 dt {
-  flex: 1;
+  display: table-cell;
   font-weight: bold;
+  vertical-align: baseline;
 }
 
 dd {
-  margin-left: 0.5em;
+  display: table-cell;
   text-align: right;
+  vertical-align: baseline;
+  padding-left: 0.5em;
 }
 
 dd::before {

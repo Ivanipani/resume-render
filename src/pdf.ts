@@ -29,7 +29,6 @@ ${css}
     html, body {
       margin: 0;
       padding: 0;
-      width: ${paperDimensions.width}mm;
     }
     .icon {
       display: inline-flex;
@@ -95,12 +94,12 @@ function runWkhtmltopdf(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const args = [
-      '--page-size', styles.paper.toUpperCase(),
-      '--margin-top', '0',
-      '--margin-right', '0',
-      '--margin-bottom', '0',
-      '--margin-left', '0',
-      '--print-media-type',
+        // '--page-size', styles.paper.toUpperCase(),
+        // '--margin-top', '0',
+        // '--margin-right', '0',
+        // '--margin-bottom', '0',
+        // '--margin-left', '0',
+        // '--print-media-type',
       '--enable-local-file-access',
       '--encoding', 'UTF-8',
       inputPath,
